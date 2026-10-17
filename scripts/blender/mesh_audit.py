@@ -280,7 +280,7 @@ def _material_checks(obj, issues):
 
 def audit(objects=None, collection=None, asset_class="small_prop", max_tris=None, max_texture=None,
           max_materials=None, pivot="bottom_center", name_regex=DEFAULT_NAME_REGEX, texture_size=None,
-          evaluated=True):
+          evaluated=True, uv_grid=128):
     """Audit mesh objects. Returns a dict (JSON-serialisable)."""
     budget = dict(CLASS_BUDGETS.get(asset_class, CLASS_BUDGETS["small_prop"]))
     if max_tris is not None:
@@ -409,7 +409,7 @@ def audit(objects=None, collection=None, asset_class="small_prop", max_tris=None
 
         # --- UVs
         tex_assumed = texture_size or budget["max_texture"]
-        uvrep = _uv_checks(bm, mesh, obj.matrix_world, tex_assumed)
+        uvrep = _uv_checks(bm, mesh, obj.matrix_world, tex_assumed, grid=uv_grid)
         rec["uv"] = uvrep
         if not uvrep["has_uv"]:
             sev = "blocker" if asset_class not in {"placeholder"} else "minor"
@@ -506,13 +506,14 @@ def _cli():
     p.add_argument("--name-regex", default=DEFAULT_NAME_REGEX)
     p.add_argument("--texture-size", type=int)
     p.add_argument("--source", action="store_true", help="audit source mesh instead of evaluated (modifiers applied)")
+    p.add_argument("--uv-grid", type=int, default=128, help="UV overlap raster size; 64 for 50k+ face meshes")
     p.add_argument("--json")
     p.add_argument("--md")
     a = p.parse_args(argv)
     rep = audit(objects=a.objects.split(",") if a.objects else None, collection=a.collection,
                 asset_class=a.asset_class, max_tris=a.max_tris, max_texture=a.max_texture,
                 max_materials=a.max_materials, pivot=a.pivot, name_regex=a.name_regex,
-                texture_size=a.texture_size, evaluated=not a.source)
+                texture_size=a.texture_size, evaluated=not a.source, uv_grid=a.uv_grid)
     if a.json:
         with open(a.json, "w") as fh:
             json.dump(rep, fh, indent=2)

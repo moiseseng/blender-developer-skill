@@ -38,9 +38,13 @@ green or `_Normal_DX` variant); Roblox gets separate 8-bit roughness/metalness. 
 
 ### 3. Presentation renders
 
-`blender_run.sh render_review.py <source.blend> -- --collection <Asset>_Model --out assets/<Asset>/renders/final --modes beauty,wireframe --views three_quarter,three_quarter_back,front,right --turntable <N from brief, 24 default> --res 1920x1080 --engine CYCLES --samples 128 --view-transform "<per style>"`.
+Two runs, because Cycles on the CPU costs minutes per frame at 1080p and a turntable has 12–36 frames:
+
+1. Beauty set, Cycles: `blender_run.sh render_review.py <source.blend> -- --collection <Asset>_Model --out assets/<Asset>/renders/final --modes beauty,wireframe --views three_quarter,three_quarter_back,front,right --res 1920x1080 --engine CYCLES --samples 128 --view-transform "<per style>"` (expect 1–3 min per view on a laptop CPU; tell the user before starting if the tier is T3+).
+2. Turntable, EEVEE: the same with `--out assets/<Asset>/renders/final/turntable --modes beauty --views three_quarter --turntable <N from brief, 24 default> --engine BLENDER_EEVEE --samples 64` (seconds per frame). Use Cycles for the turntable only when the brief asks for it and the user accepts the time.
+
 Thumbnail: a square render of the 3/4 beauty view (1200x1200, neutral grey) via the same script with
-`--res 1200x1200 --views three_quarter --modes beauty`. UV layout image when UVs are declared
+`--res 1200x1200 --views three_quarter --modes beauty --engine CYCLES`. UV layout image when UVs are declared
 (`bpy.ops.uv.export_layout` in a short script). Read the results once; a bad frame is re-rendered,
 not shipped.
 

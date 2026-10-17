@@ -126,17 +126,22 @@ def _world(scene, gray=0.35, hdri=None):
 
 
 def _ground(scene, center, lo, radius):
-    """Shadow-catching ground disc so the asset does not float."""
-    bpy.ops.mesh.primitive_plane_add(size=radius * 12, location=(center.x, center.y, lo.z - 0.0005))
-    plane = bpy.context.active_object
-    plane.name = "REVIEW_Ground"
+    """Shadow-catching ground plane (operator-free so it works from any context)."""
+    half = radius * 6
+    me = bpy.data.meshes.new("REVIEW_Ground")
+    me.from_pydata([(-half, -half, 0), (half, -half, 0), (half, half, 0), (-half, half, 0)], [], [(0, 1, 2, 3)])
+    me.update()
+    plane = bpy.data.objects.new("REVIEW_Ground", me)
+    plane.location = (center.x, center.y, lo.z - 0.0005)
     mat = bpy.data.materials.new("REVIEW_Ground")
     _ensure_node_tree(mat)
-    bsdf = mat.node_tree.nodes["Principled BSDF"]
-    bsdf.inputs["Base Color"].default_value = (0.35, 0.35, 0.35, 1.0)
-    bsdf.inputs["Roughness"].default_value = 0.9
+    bsdf = next((n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED"), None)
+    if bsdf:
+        bsdf.inputs["Base Color"].default_value = (0.35, 0.35, 0.35, 1.0)
+        bsdf.inputs["Roughness"].default_value = 0.9
     mat.diffuse_color = (0.35, 0.35, 0.35, 1.0)
-    plane.data.materials.append(mat)
+    me.materials.append(mat)
+    scene.collection.objects.link(plane)
     return plane
 
 
@@ -217,7 +222,8 @@ def review(objects=None, collection=None, out_dir="renders", modes=("beauty", "c
 
     # Temporary scene that links the originals (no copies) plus the review rig.
     scene = bpy.data.scenes.new("REVIEW_TMP")
-    bpy.context.window.scene = scene if bpy.context.window else None
+    if bpy.context.window:
+        bpy.context.window.scene = scene
     for o in objs:
         scene.collection.objects.link(o)
     lo, hi, center, radius = _bounds(objs)
@@ -240,9 +246,8 @@ def review(objects=None, collection=None, out_dir="renders", modes=("beauty", "c
     scene.view_settings.look = "None"
 
     extra = []
-    with bpy.context.temp_override(scene=scene):
-        if ground:
-            extra.append(_ground(scene, center, lo, radius))
+    if ground:
+        extra.append(_ground(scene, center, lo, radius))
 
     outputs = {}
 
@@ -278,49 +283,49 @@ def review(objects=None, collection=None, out_dir="renders", modes=("beauty", "c
             sh.show_specular_highlight = True
             scene.display.render_aa = "8"
 
-    clay = _clay_copies(scene, objs, wire="wireframe" in modes) if ({"clay", "wireframe"} & set(modes)) else []
-
-    for mode in modes:
-        _set_mode(mode)
-        for v in views:
-            direction, ortho = VIEWS[v]
-            _render(mode, v, direction, ortho, os.path.join(out_dir, f"{mode}_{v}.png"))
-        if mode == "beauty" and turntable_frames:
-            for i in range(turntable_frames):
-                ang = 2 * math.pi * i / turntable_frames
-                d = Vector((math.sin(ang), -math.cos(ang), 0.55)).normalized()
-                _render("turntable", f"{i:02d}", d, False, os.path.join(out_dir, f"turntable_{i:02d}.png"))
-
+    clay = []
     sheet_path = None
-    if sheet:
-        ordered = [p for m in ("beauty", "clay", "wireframe") for p in outputs.get(m, [])]
-        if ordered:
-            sheet_path = contact_sheet(ordered, os.path.join(out_dir, "contact_sheet.png"), cols=len(views))
-        if outputs.get("turntable"):
-            contact_sheet(outputs["turntable"], os.path.join(out_dir, "turntable_sheet.png"), cols=4)
-
-    # Cleanup: unlink originals, delete rig and the temp scene; restore render visibility.
-    for o in objs:
-        o.hide_render = False
-    for o in clay + extra + lights + [cam]:
-        data = o.data
-        bpy.data.objects.remove(o, do_unlink=True)
-        if data and data.users == 0:
-            if isinstance(data, bpy.types.Mesh):
-                bpy.data.meshes.remove(data)
-            elif isinstance(data, bpy.types.Light):
-                bpy.data.lights.remove(data)
-            elif isinstance(data, bpy.types.Camera):
-                bpy.data.cameras.remove(data)
-    world = scene.world
-    bpy.data.scenes.remove(scene)
-    if world and world.users == 0:
-        bpy.data.worlds.remove(world)
-    for m in list(bpy.data.materials):
-        if m.name.startswith("REVIEW_") and m.users == 0:
-            bpy.data.materials.remove(m)
-    if bpy.context.window:
-        bpy.context.window.scene = src_scene
+    try:
+        clay = _clay_copies(scene, objs, wire="wireframe" in modes) if ({"clay", "wireframe"} & set(modes)) else []
+        for mode in modes:
+            _set_mode(mode)
+            for v in views:
+                direction, ortho = VIEWS[v]
+                _render(mode, v, direction, ortho, os.path.join(out_dir, f"{mode}_{v}.png"))
+            if mode == "beauty" and turntable_frames:
+                for i in range(turntable_frames):
+                    ang = 2 * math.pi * i / turntable_frames
+                    d = Vector((math.sin(ang), -math.cos(ang), 0.55)).normalized()
+                    _render("turntable", f"{i:02d}", d, False, os.path.join(out_dir, f"turntable_{i:02d}.png"))
+        if sheet:
+            ordered = [p for m in ("beauty", "clay", "wireframe") for p in outputs.get(m, [])]
+            if ordered:
+                sheet_path = contact_sheet(ordered, os.path.join(out_dir, "contact_sheet.png"), cols=len(views))
+            if outputs.get("turntable"):
+                contact_sheet(outputs["turntable"], os.path.join(out_dir, "turntable_sheet.png"), cols=4)
+    finally:
+        # Cleanup even when a render fails: unlink originals, delete rig and temp scene, restore the user's scene.
+        for o in objs:
+            o.hide_render = False
+        for o in clay + extra + lights + [cam]:
+            data = o.data
+            bpy.data.objects.remove(o, do_unlink=True)
+            if data and data.users == 0:
+                if isinstance(data, bpy.types.Mesh):
+                    bpy.data.meshes.remove(data)
+                elif isinstance(data, bpy.types.Light):
+                    bpy.data.lights.remove(data)
+                elif isinstance(data, bpy.types.Camera):
+                    bpy.data.cameras.remove(data)
+        world = scene.world
+        if bpy.context.window:
+            bpy.context.window.scene = src_scene
+        bpy.data.scenes.remove(scene)
+        if world and world.users == 0:
+            bpy.data.worlds.remove(world)
+        for m in list(bpy.data.materials):
+            if m.name.startswith("REVIEW_") and m.users == 0:
+                bpy.data.materials.remove(m)
 
     return dict(
         blender=bpy.app.version_string,
