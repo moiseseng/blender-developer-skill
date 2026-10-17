@@ -67,15 +67,19 @@ wear where the brief says, is the albedo in range (no black, no white), is rough
 (several objects in one call when they share the UV space; the script hides every other render-visible
 object during the bake so AO and rays see only the asset). Then:
 
-- Open every map with the Read tool. Black unused space is fine (it is outside the islands); black
-  inside an island is not. Normal map mostly (128,128,255) with detail where bump nodes act.
+- Open `textures/T_<Asset>_Sheet.png` with the Read tool (one montage of the whole set, written by the
+  bake), then individual maps only where something looks off. Black unused space is fine (it is
+  outside the islands); black inside an island is not. Normal map mostly (128,128,255) with detail
+  where bump nodes act.
 - `material_kit.texture_stats(path, uv_coverage=<from the audit>)` for each: albedo range (the
   unused UV space of a bake is black by design; the coverage argument makes the check ignore it),
   metallic bimodal, roughness mean and variation, normal blue > 0.5, 8 vs 16 bit. Fix the material and
   re-bake if a flag fires.
 - `--orm` for Unreal; Roblox wants separate 8-bit roughness/metalness (already what the bake writes).
-- The bake rewires the object to `M_<Asset>_Baked` reading the images; the procedural material stays
-  in the file for re-bakes. Record the maps, sizes and conventions in `decisions.md`.
+- The bake rewires the object(s) to `M_<Asset>_Baked` reading the images (kept with a fake user so a
+  re-bake loop cannot purge it on save); the procedural materials stay in the file for re-bakes. Keep
+  the delivery objects in a collection that renders (a `hide_render` collection makes the bake fail;
+  the script enables it temporarily). Record the maps, sizes and conventions in `decisions.md`.
 
 Re-render the beauty views with the baked material and compare with the procedural render: seams at
 island borders, blurred detail (density too low), colour shifts (colourspace wrong).

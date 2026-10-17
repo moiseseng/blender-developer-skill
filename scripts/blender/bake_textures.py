@@ -57,17 +57,44 @@ def _select_for_bake(lows, highs):
 
 
 class _Isolate:
-    """Hide every other render-visible mesh from the bake (AO and selected-to-active rays see the whole scene)."""
+    """Hide every other render-visible mesh from the bake (AO and selected-to-active rays see the whole scene),
+    and make sure the baked objects' own collections are enabled for rendering (a hide_render collection
+    makes bpy.ops.object.bake fail with "not enabled for rendering")."""
 
-    def __init__(self, keep):
+    def __init__(self, keep, isolate=True):
         keep_ids = {o.name for o in keep}
-        self.saved = [(o, o.hide_render) for o in bpy.context.scene.objects if o.type in {"MESH", "CURVE", "META"} and o.name not in keep_ids]
-        for o, _h in self.saved:
-            o.hide_render = True
+        self.saved = []
+        if isolate:
+            self.saved = [(o, o.hide_render) for o in bpy.context.scene.objects if o.type in {"MESH", "CURVE", "META"} and o.name not in keep_ids]
+            for o, _h in self.saved:
+                o.hide_render = True
+        self.colls = []
+        for o in keep:
+            for c in o.users_collection:
+                if c.hide_render:
+                    self.colls.append((c, True))
+                    c.hide_render = False
+        self.layer = []
+        for o in keep:
+            for lc in _layer_collections(bpy.context.view_layer.layer_collection):
+                if lc.exclude and o.name in lc.collection.all_objects:
+                    self.layer.append((lc, True))
+                    lc.exclude = False
 
     def restore(self):
         for o, h in self.saved:
             o.hide_render = h
+        for c, h in self.colls:
+            c.hide_render = h
+        for lc, e in self.layer:
+            lc.exclude = e
+
+
+def _layer_collections(root):
+    out = [root]
+    for child in root.children:
+        out.extend(_layer_collections(child))
+    return out
 
 
 def _principled(mat):
@@ -90,13 +117,20 @@ def _ensure_materials(obj):
 
 
 def _new_image(name, size, float_buffer, noncolor):
-    img = bpy.data.images.get(name)
-    if img:
-        bpy.data.images.remove(img)
-    img = bpy.data.images.new(name, size, size, alpha=False, float_buffer=float_buffer)
+    """A fresh bake target. Never reuse or remove an existing image of the final name: a material rewired
+    to a previous bake references it, and removing it would feed black into the next EMIT pass."""
+    img = bpy.data.images.new(name + ".bake", size, size, alpha=False, float_buffer=float_buffer)
     img.colorspace_settings.name = "Non-Color" if noncolor else "sRGB"
     img.generated_color = (0.5, 0.5, 1.0, 1.0) if "Normal" in name else (0, 0, 0, 1)
     return img
+
+
+def _reload_existing(path):
+    """After saving a bake over a file that a loaded image already points at, refresh that image."""
+    target = os.path.abspath(path)
+    for im in bpy.data.images:
+        if im.filepath and os.path.abspath(bpy.path.abspath(im.filepath)) == target and not im.name.endswith(".bake"):
+            im.reload()
 
 
 class _EmitRoute:
@@ -222,6 +256,33 @@ def pack_orm(ao_path, rough_path, metal_path, out_path):
     return out_path
 
 
+def texture_sheet(files, out_path, tile=512):
+    """One downscaled montage of a texture set (order: basecolor, normal, roughness, metallic, ao, emissive, orm)
+    so a whole bake can be judged with one Read. Data maps are shown as stored (no colour management)."""
+    import numpy as np
+    order = [k for k in ("basecolor", "normal", "roughness", "metallic", "ao", "emissive", "orm") if k in files]
+    tiles = []
+    for k in order:
+        img = bpy.data.images.load(files[k], check_existing=False)
+        img.colorspace_settings.name = "Non-Color"
+        img.scale(tile, tile)
+        px = np.array(img.pixels[:], dtype=np.float32).reshape(tile, tile, 4)
+        px[:, :, 3] = 1.0
+        tiles.append(px)
+        bpy.data.images.remove(img)
+    if not tiles:
+        return None
+    sheet = np.concatenate(tiles, axis=1)
+    out = bpy.data.images.new("TEXTURE_SHEET", tile * len(tiles), tile, alpha=False)
+    out.colorspace_settings.name = "Non-Color"
+    out.pixels = sheet.ravel().tolist()
+    out.filepath_raw = out_path
+    out.file_format = "PNG"
+    out.save()
+    bpy.data.images.remove(out)
+    return out_path
+
+
 def rewire_to_baked(obj, files, mat_name):
     """Replace all material slots with one material that reads the baked images."""
     mat = bpy.data.materials.new(mat_name)
@@ -258,6 +319,7 @@ def rewire_to_baked(obj, files, mat_name):
             pass
     obj.data.materials.clear()
     obj.data.materials.append(mat)
+    mat.use_fake_user = True   # survives a save even when a re-bake loop leaves it temporarily unassigned
     return mat
 
 
@@ -271,7 +333,7 @@ def _default_prefix(names):
 
 def bake(object_name, out_dir, size=2048, maps=("basecolor", "roughness", "metallic", "normal", "ao"), samples=32,
          margin=16, high_objects=None, cage_extrusion=0.0, max_ray_distance=0.0, prefix=None, rewire=True,
-         orm=False, save_blend=False, isolate=True):
+         orm=False, save_blend=False, isolate=True, sheet=True):
     """Bake one texture set. object_name: a name or a list of names whose UVs share one 0-1 space (one
     texture for the whole asset). With high_objects (selected-to-active) exactly one low object is allowed.
     isolate hides every other render-visible object during the bake (AO and rays see only the asset)."""
@@ -300,7 +362,7 @@ def bake(object_name, out_dir, size=2048, maps=("basecolor", "roughness", "metal
     # The image node must be active in the materials that are *baked from* (the highs in selected-to-active,
     # otherwise the lows themselves); the image is written through the selected objects' UVs.
     mats = list({s.material for o in (lows if highs else source_objs) for s in o.material_slots if s.material})
-    iso = _Isolate(lows + highs) if isolate else None
+    iso = _Isolate(lows + highs, isolate=isolate)
 
     files = {}
     log = []
@@ -337,19 +399,21 @@ def bake(object_name, out_dir, size=2048, maps=("basecolor", "roughness", "metal
                     route.restore()
             if ok:
                 _save(img, path)
+                _reload_existing(path)
                 files[key] = path
                 log.append(f"{key}: ok -> {os.path.basename(path)}")
             else:
                 log.append(f"{key}: bake failed")
             bpy.data.images.remove(img)
     finally:
-        if iso:
-            iso.restore()
+        iso.restore()
         scene.render.engine = prev_engine
 
     if orm and any(k in files for k in ("ao", "roughness", "metallic")):
         files["orm"] = pack_orm(files.get("ao"), files.get("roughness"), files.get("metallic"),
                                 os.path.join(out_dir, f"{prefix}_ORM.png"))
+
+    sheet_path = texture_sheet(files, os.path.join(out_dir, f"{prefix}_Sheet.png")) if (sheet and files) else None
 
     baked_mat = None
     if rewire and files:
@@ -363,7 +427,7 @@ def bake(object_name, out_dir, size=2048, maps=("basecolor", "roughness", "metal
         bpy.ops.wm.save_mainfile()
 
     return dict(blender=bpy.app.version_string, objects=names, size=size, samples=samples, files=files,
-                baked_material=baked_mat, selected_to_active=bool(highs), isolated=bool(isolate), log=log)
+                baked_material=baked_mat, selected_to_active=bool(highs), isolated=bool(isolate), sheet=sheet_path, log=log)
 
 
 def _cli():
@@ -384,11 +448,12 @@ def _cli():
     p.add_argument("--orm", action="store_true")
     p.add_argument("--save", action="store_true")
     p.add_argument("--no-isolate", action="store_true", help="let other scene objects affect AO / rays")
+    p.add_argument("--no-sheet", action="store_true", help="skip the one-image montage of the texture set")
     a = p.parse_args(argv)
     rep = bake(a.object.split(",") if "," in a.object else a.object, a.out, size=a.size, maps=tuple(a.maps.split(",")),
                samples=a.samples, margin=a.margin, high_objects=a.high.split(",") if a.high else None,
                cage_extrusion=a.cage_extrusion, max_ray_distance=a.max_ray, prefix=a.prefix, rewire=not a.no_rewire,
-               orm=a.orm, save_blend=a.save, isolate=not a.no_isolate)
+               orm=a.orm, save_blend=a.save, isolate=not a.no_isolate, sheet=not a.no_sheet)
     print(json.dumps(rep, indent=2))
     print("BAKE_JSON=" + json.dumps(rep))
 
