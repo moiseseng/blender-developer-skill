@@ -1,0 +1,13 @@
+addon_utils.disable: bl_ext.lab_blender_org.mcp not enabled
+RESULT|greeble_0_hull_2x1x0.5|verts=8|faces=6|tris=12|ngons=0|dims=2.000x1.000x0.500|zmin=0.0|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|greeble_1_panel_lines_inset+recess|verts=56|faces=54|tris=108|ngons=0|dims=2.000x1.000x0.500|zmin=0.0|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|greeble_2_chamfer_52_edges_0.010m|verts=152|faces=146|tris=300|ngons=16|dims=2.000x1.000x0.500|zmin=0.0|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|greeble_3_bolts_24_hex|verts=288|faces=192|tris=480|ngons=48|dims=2.000x1.000x0.500|zmin=-0.0|nonmanifold=0|boundary=0|loose=0|flipped=0
+linked duplicates share mesh users: 7
+RESULT|greeble_4_boolean_slots_evaluated|verts=184|faces=168|tris=364|ngons=18|dims=2.000x1.000x0.500|zmin=0.0|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|greeble_5_boolean_applied+cleanup|verts=160|faces=120|tris=316|ngons=33|dims=2.000x1.000x0.500|zmin=0.0|nonmanifold=0|boundary=0|loose=0|flipped=0
+Info: Saved as "t07.blend"
+DONE t07
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:49:19)
+
+Blender quit

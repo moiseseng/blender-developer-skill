@@ -1,0 +1,25 @@
+{
+  "name": "blender-3d-team",
+  "description": "A professional 3D asset team as Claude Code skills, driving Blender through Python and the Blender MCP: art director (brief and references), modeler, texture artist, tech artist/QA and delivery. Takes an asset from a verbal idea to a reviewed, exported, documented package (0 -> 1): intake interview, approved brief, blockout, modeling, UV, procedural or baked PBR textures, render review loops, technical audit, export presets per engine (glTF, Unity, Unreal, Godot, Roblox, web, USD) and a delivery packet.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Moises"
+  },
+  "homepage": "https://github.com/moiseseng/blender-3d-team",
+  "repository": "https://github.com/moiseseng/blender-3d-team",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "blender",
+    "3d",
+    "modeling",
+    "texturing",
+    "pbr",
+    "gltf",
+    "fbx",
+    "game-assets",
+    "art-direction",
+    "qa",
+    "workflows"
+  ]
+}

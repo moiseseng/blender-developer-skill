@@ -1,0 +1,24 @@
+00:00.475  object.modifier  | WARNING Object: "blk_open_MANIFOLD", Modifier: "Bool", Cannot execute, object(s) 'cut_open_MANIFOLD' have non-manifold geometry
+addon_utils.disable: bl_ext.lab_blender_org.mcp not enabled
+RESULT|boolean_DIFFERENCE_FLOAT_closed_cutter|verts=72|faces=40|tris=144|ngons=4|dims=1.000x1.000x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|boolean_DIFFERENCE_EXACT_closed_cutter|verts=72|faces=40|tris=144|ngons=4|dims=1.000x1.000x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|boolean_DIFFERENCE_MANIFOLD_closed_cutter|verts=72|faces=40|tris=144|ngons=4|dims=1.000x1.000x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|boolean_DIFFERENCE_FLOAT_OPEN_cutter|verts=72|faces=40|tris=144|ngons=4|dims=1.000x1.000x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|boolean_DIFFERENCE_EXACT_OPEN_cutter|verts=72|faces=40|tris=144|ngons=4|dims=1.000x1.000x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|boolean_DIFFERENCE_MANIFOLD_OPEN_cutter|verts=8|faces=6|tris=12|ngons=0|dims=1.000x1.000x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|boolean_EXACT_selfintersecting_cutter_use_self=False|verts=104|faces=14|tris=204|ngons=10|dims=1.000x1.000x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|boolean_EXACT_selfintersecting_cutter_use_self=True|verts=76|faces=40|tris=152|ngons=8|dims=1.000x1.000x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|boolean_EXACT_use_self+use_hole_tolerant|verts=76|faces=40|tris=152|ngons=8|dims=1.000x1.000x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|cutter_hide_viewport=True (monitor icon)|verts=72|faces=40|tris=144|ngons=4|dims=1.000x1.000x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|cutter_hide_set(True)+hide_render+WIRE (eye icon)|verts=72|faces=40|tris=144|ngons=4|dims=1.000x1.000x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|cutter_unlinked_from_scene|verts=72|faces=40|tris=144|ngons=4|dims=1.000x1.000x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|boolean_collection_operand_2_cutters|verts=120|faces=64|tris=240|ngons=4|dims=1.000x1.000x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|cleanup_0_applied_EXACT|verts=72|faces=40|tris=144|ngons=4|dims=1.000x1.000x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|cleanup_1_remove_doubles+dissolve_limit+recalc|verts=72|faces=40|tris=144|ngons=4|dims=1.000x1.000x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|cleanup_2_triangulate_ngons_only|verts=72|faces=108|tris=144|ngons=0|dims=1.000x1.000x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+modifier_apply via temp_override: {'FINISHED'} modifiers left: 0
+RESULT|modifier_apply_operator_result|verts=72|faces=40|tris=144|ngons=4|dims=1.000x1.000x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+DONE t03
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:49:19)
+
+Blender quit

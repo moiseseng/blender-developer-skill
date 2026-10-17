@@ -1,0 +1,12 @@
+.DS_Store
+__pycache__/
+*.pyc
+*.blend1
+*.blend2
+/*-workspace/
+/research/_tests/**/out/
+/research/_tests/**/*.blend
+/research/_tests/**/*.png
+/research/_tests/**/*.glb
+/research/_tests/**/_out/
+/research/_tests/**/out/

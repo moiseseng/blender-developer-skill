@@ -1,0 +1,23 @@
+{
+  "skill_name": "blender-3d-team",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Necesito un cofre del tesoro estilizado (tipo Fortnite/Overwatch) para mi juego de Roblox, que se vea al abrir desde unos 3 metros. Tapa que se abre. Hazlo lo mejor posible y déjame el fbx listo para importar en Studio.",
+      "expected_output": "Runs the asset-brief interview (target Roblox, style PBR stylized, tier T1/T2 with Roblox caps, dimensions, pivot on the lid hinge for the lid, deliverables fbx_roblox + glb), writes assets/TreasureChest/docs/brief.md, stops for approval; after approval builds scripts/build.py (blockout, then detail with consistent bevels), audits (<= 20k tris, one material per mesh), renders contact sheets and compares with references, bakes a PBR set with separate roughness/metalness, QA report with severities, exports fbx_roblox verified, README with counts.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Tengo este .blend de una lámpara de escritorio que me pasaron y se ve rara en Unity (está girada y oscura por dentro). Revísalo y arréglalo para que importe bien.",
+      "expected_output": "Routes to review-qa first: runs mesh_audit on the file (finds unapplied rotation/scale, flipped normals, missing UVs or wrong colourspaces), renders the review sheet, writes the QA report, then routes fixes to modeling/uv-texturing and exports with the fbx_unity preset, verifying dimensions and rotation; explains the Unity importer clicks.",
+      "files": ["lamp.blend"]
+    },
+    {
+      "id": 3,
+      "prompt": "Quiero un set de 3 rocas low-poly facetadas con una paleta de 4 colores para un juego móvil en Godot. Rápido pero bien hecho.",
+      "expected_output": "Short brief (style low-poly flat-shaded, target Godot mobile, T1, palette hex values, dimensions), build script generating three noisy decimated icospheres with flat shading, one palette material via material_kit.assign_palette, audit per rock within mobile budget, clay+beauty contact sheet, GLB export verified, README.",
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+addon_utils.disable: bl_ext.lab_blender_org.mcp not enabled
+RESULT|spin_bottle_raw_before_remove_doubles|verts=288|faces=256|tris=512|ngons=0|dims=0.080x0.080x0.300|zmin=0.0|nonmanifold=64|boundary=64|loose=0|flipped=256
+EXPECT verts = 32*7 + 2 axis = 226
+RESULT|spin_bottle_clean|verts=226|faces=256|tris=448|ngons=0|dims=0.080x0.080x0.300|zmin=0.0|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|spin_tire_torus_48x12|verts=576|faces=576|tris=1152|ngons=0|dims=0.760x0.760x0.160|zmin=-0.08|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|spin_elbow_90deg_open_ends|verts=144|faces=128|tris=256|ngons=0|dims=0.130x0.130x0.060|zmin=-0.03|nonmanifold=32|boundary=32|loose=0|flipped=0
+RESULT|bridge_loops_tapered_tube|verts=48|faces=24|tris=48|ngons=0|dims=1.000x1.000x1.000|zmin=0.0|nonmanifold=48|boundary=48|loose=0|flipped=0
+RESULT|symmetrize_direction_X_from_plusX_half|verts=28|faces=22|tris=44|ngons=0|dims=2.000x1.200x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|symmetrize_direction_-X_from_plusX_half|verts=4|faces=0|tris=0|ngons=0|dims=0.000x1.000x1.000|zmin=-0.5|nonmanifold=4|boundary=0|loose=0|flipped=0
+RESULT|bmesh_mirror_op_X_merged|verts=28|faces=22|tris=44|ngons=0|dims=2.000x1.200x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+Info: Saved as "t02.blend"
+DONE t02
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:49:19)
+
+Blender quit

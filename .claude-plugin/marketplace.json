@@ -1,0 +1,18 @@
+{
+  "name": "blender-3d-team",
+  "description": "Marketplace for the blender-3d-team plugin: a professional 3D asset production team as Claude Code skills, built on Blender.",
+  "owner": {
+    "name": "Moises"
+  },
+  "plugins": [
+    {
+      "name": "blender-3d-team",
+      "description": "A professional 3D asset team as skills: art director, modeler, texture artist, tech artist/QA and delivery. Brief -> blockout -> model -> UV -> textures -> review -> audit -> export -> delivery packet. Blender 4.2+/5.x via Python and the Blender MCP.",
+      "version": "0.1.0",
+      "source": "./",
+      "author": {
+        "name": "Moises"
+      }
+    }
+  ]
+}

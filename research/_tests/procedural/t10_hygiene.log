@@ -1,0 +1,32 @@
+addon_utils.disable: bl_ext.lab_blender_org.mcp not enabled
+RESULT|hygiene_0_body_WORLD_bbox_before|verts=56|faces=54|tris=108|ngons=0|dims=0.800x0.800x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|hygiene_0_body_LOCAL_mesh_before|verts=56|faces=54|tris=108|ngons=0|dims=0.800x0.800x0.800|zmin=-0.4|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|hygiene_1_apply_transforms_LOCAL (z scale 1.25 baked)|verts=56|faces=54|tris=108|ngons=0|dims=0.800x0.800x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+matrix_world identity: True scale: (1.0, 1.0, 1.0)
+RESULT|hygiene_2_origin_bottom_center_LOCAL (zmin 0)|verts=56|faces=54|tris=108|ngons=0|dims=0.800x0.800x1.000|zmin=0.0|nonmanifold=0|boundary=0|loose=0|flipped=0
+origin now at world: (3.0, 2.0, -0.5) (= old bbox bottom-centre; mesh did not move in world space)
+RESULT|hygiene_3_placed_at_origin_WORLD|verts=56|faces=54|tris=108|ngons=0|dims=0.800x0.800x1.000|zmin=0.0|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|hygiene_4_lid|verts=8|faces=6|tris=12|ngons=0|dims=0.840x0.840x0.050|zmin=1.0|nonmanifold=0|boundary=0|loose=0|flipped=0
+collection contents: ['SM_Crate_Body', 'SM_Crate_Lid'] dims body: (0.8, 0.8, 1.0)
+RESULT|hygiene_5_bad_mesh_detected|verts=10|faces=6|tris=12|ngons=0|dims=5.500x5.500x5.500|zmin=-0.5|nonmanifold=1|boundary=0|loose=1|flipped=1
+validate() changed data: False
+RESULT|hygiene_6_bad_mesh_fixed|verts=8|faces=6|tris=12|ngons=0|dims=1.000x1.000x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+00:27:34 | INFO: Starting glTF 2.0 export
+00:27:34 | INFO: Extracting primitive: SM_Crate_Body
+00:27:34 | INFO: Primitives created: 1
+00:27:34 | INFO: Extracting primitive: SM_Crate_Lid
+00:27:34 | INFO: Primitives created: 1
+00:27:34 | INFO: Finished glTF 2.0 export in 0.005532979965209961 s
+
+gltf: {'FINISHED'} 6832 bytes
+
+FBX export starting... '/Users/Game/blender-3d-team/research/_tests/procedural/_out/SM_Crate.fbx'
+export finished in 0.0023 sec.
+fbx: {'FINISHED'} 13468 bytes
+Info: Saved as "t10_hygiene.blend"
+DONE t10
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:49:19)
+
+Blender quit

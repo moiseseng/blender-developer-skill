@@ -1,0 +1,19 @@
+addon_utils.disable: bl_ext.lab_blender_org.mcp not enabled
+curve object dims: (1.215, 0.236, 0.501)
+RESULT|bezier_cable_r0.01_bevres4_resu12_caps_RAW|verts=468|faces=452|tris=884|ngons=0|dims=1.215x0.236x0.501|zmin=0.5066|nonmanifold=48|boundary=48|loose=0|flipped=0
+RESULT|bezier_cable_caps_after_remove_doubles (caps come in as disconnected fans)|verts=444|faces=452|tris=884|ngons=0|dims=1.215x0.236x0.501|zmin=0.5066|nonmanifold=0|boundary=0|loose=0|flipped=0
+cable use_fill_caps: True fill_mode: FULL bevel_mode: ROUND
+evaluated cable type: CURVE data type: Curve
+to_mesh ngons (caps?): 0 faces 452
+RESULT|bezier_cable_use_fill_caps_False|verts=444|faces=432|tris=864|ngons=0|dims=1.215x0.236x0.501|zmin=0.5066|nonmanifold=24|boundary=24|loose=0|flipped=0
+RESULT|bezier_pipe_r0.04_bevres8|verts=700|faces=676|tris=1316|ngons=0|dims=0.601x0.080x0.601|zmin=0.0|nonmanifold=80|boundary=80|loose=0|flipped=0
+RESULT|bezier_pipe_FREE_handles|verts=700|faces=676|tris=1316|ngons=0|dims=0.540x0.080x0.540|zmin=0.0|nonmanifold=80|boundary=80|loose=0|flipped=0
+RESULT|poly_rope_12pts_bevel0.015_open|verts=120|faces=110|tris=220|ngons=0|dims=2.012x0.030x0.324|zmin=0.6888|nonmanifold=20|boundary=20|loose=0|flipped=0
+RESULT|bezier_bevel_object_square_duct_RAW|verts=108|faces=100|tris=196|ngons=0|dims=1.026x0.416x0.100|zmin=-0.05|nonmanifold=16|boundary=16|loose=0|flipped=96
+RESULT|bezier_bevel_object_duct_after_remove_doubles+recalc|verts=100|faces=100|tris=196|ngons=0|dims=1.026x0.416x0.100|zmin=-0.05|nonmanifold=0|boundary=0|loose=0|flipped=0
+convert op: {'FINISHED'} type now: MESH
+RESULT|convert_operator_result|verts=468|faces=452|tris=884|ngons=0|dims=1.215x0.236x0.501|zmin=0.5066|nonmanifold=48|boundary=48|loose=0|flipped=0
+DONE t05
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:49:19)
+
+Blender quit

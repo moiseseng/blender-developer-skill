@@ -1,0 +1,18 @@
+addon_utils.disable: bl_ext.lab_blender_org.mcp not enabled
+RESULT|stylized_0_rock_hi|verts=162|faces=320|tris=320|ngons=0|dims=1.030x1.038x1.026|zmin=-0.516|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|stylized_1_rock_decimate_0.12_flat|verts=21|faces=38|tris=38|ngons=0|dims=1.081x0.989x1.064|zmin=-0.513|nonmanifold=0|boundary=0|loose=0|flipped=0
+all faces flat: True
+RESULT|stylized_2_chunky_bevel_seg1|verts=24|faces=26|tris=44|ngons=0|dims=0.500x0.500x0.500|zmin=-0.25|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|stylized_2_chunky_bevel_seg4|verts=152|faces=150|tris=300|ngons=0|dims=0.500x0.500x0.500|zmin=-0.25|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|stylized_3_figure_blockout|verts=138|faces=142|tris=268|ngons=2|dims=0.500x0.500x1.320|zmin=0.0|nonmanifold=0|boundary=0|loose=0|flipped=0
+bmesh.ops.scale space=Translation(-pivot): vert z 2.0 -> 3.000  (3.0 = about pivot, 4.0 = about origin)
+bmesh.ops.scale space=Translation(+pivot): vert z 2.0 -> 5.000  (3.0 = about pivot, 4.0 = about origin)
+space=Translation(-pivot): head zmin after: 0.911 (pivot 1.0 fixed -> ~0.81 expected if scaling about pivot)
+space=Translation(+pivot): head zmin after: 2.035
+RESULT|stylized_4_figure_head_x1.6_manual|verts=138|faces=142|tris=268|ngons=2|dims=0.704x0.704x1.512|zmin=0.0|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|stylized_5_lowpoly_gem_10x6|verts=52|faces=60|tris=100|ngons=0|dims=0.761x0.800x0.800|zmin=-0.4|nonmanifold=0|boundary=0|loose=0|flipped=0
+Info: Saved as "t09.blend"
+DONE t09
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:49:19)
+
+Blender quit

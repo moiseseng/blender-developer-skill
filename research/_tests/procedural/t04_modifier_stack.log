@@ -1,0 +1,27 @@
+addon_utils.disable: bl_ext.lab_blender_org.mcp not enabled
+RESULT|bracket_half_base_open_seam|verts=12|faces=7|tris=18|ngons=2|dims=0.200x0.100x0.100|zmin=0.0|nonmanifold=4|boundary=4|loose=0|flipped=0
+stack order: ['MIRROR', 'ARRAY', 'BEVEL', 'WEIGHTED_NORMAL']
+RESULT|bracket_Mirror>Array>Bevel>WeightedNormal_evaluated|verts=624|faces=630|tris=1236|ngons=12|dims=0.400x0.400x0.100|zmin=0.0|nonmanifold=0|boundary=0|loose=0|flipped=0
+preserve=True has_custom_normals: True uv_layers: 1 attrs: ['UVMap', 'custom_normal', 'panel_id', 'position', 'sharp_edge', 'sharp_face']
+preserve=False has_custom_normals: True uv_layers: 1 attrs: ['UVMap', 'custom_normal', 'panel_id', 'position', 'sharp_edge', 'sharp_face']
+shade_auto_smooth added: Smooth by Angle NODES linked lib: True pinned last: True
+RESULT|bracket_+SmoothByAngle_modifier|verts=624|faces=630|tris=1236|ngons=12|dims=0.400x0.400x0.100|zmin=0.0|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|bracket_apply_stack_in_place|verts=624|faces=630|tris=1236|ngons=12|dims=0.400x0.400x0.100|zmin=0.0|nonmanifold=0|boundary=0|loose=0|flipped=0
+applied has_custom_normals: True sharp_edge attr: True
+shade_smooth_by_angle -> sharp_edge count: 360
+RESULT|cube_Bevel(2seg)>Subsurf(2)|verts=866|faces=864|tris=1728|ngons=0|dims=0.499x0.499x0.499|zmin=-0.2495|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|grid_Solidify_0.02|verts=242|faces=240|tris=480|ngons=0|dims=1.000x1.000x0.020|zmin=-0.02|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|screw_vase_lathe_32steps|verts=162|faces=192|tris=320|ngons=0|dims=0.160x0.160x0.250|zmin=0.0|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|screw_thread_pitch4mm_x10|verts=483|faces=320|tris=640|ngons=0|dims=0.120x0.120x0.044|zmin=0.0|nonmanifold=324|boundary=324|loose=0|flipped=0
+RESULT|pipe_Array(FIT_CURVE)>Curve_along_bezier|verts=240|faces=228|tris=456|ngons=0|dims=1.612x0.466x0.375|zmin=-0.0295|nonmanifold=24|boundary=24|loose=0|flipped=0
+RESULT|cube_sub4_SimpleDeform_TAPER_-0.6|verts=152|faces=150|tris=300|ngons=0|dims=1.000x1.000x1.000|zmin=0.0|nonmanifold=0|boundary=0|loose=0|flipped=0
+taper top width: 0.4
+RESULT|uvsphere_Displace_clouds_0.08|verts=482|faces=512|tris=960|ngons=0|dims=1.015x0.997x1.019|zmin=-0.5213|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|cube_pre_triangulated|verts=8|faces=12|tris=12|ngons=0|dims=1.000x1.000x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|cube_Decimate_DISSOLVE_5deg|verts=8|faces=6|tris=12|ngons=0|dims=1.000x1.000x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|cube_Decimate>Triangulate_export|verts=8|faces=12|tris=12|ngons=0|dims=1.000x1.000x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+Info: Saved as "t04.blend"
+DONE t04
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:49:19)
+
+Blender quit

@@ -1,0 +1,23 @@
+addon_utils.disable: bl_ext.lab_blender_org.mcp not enabled
+MeshLine inputs: ['Count', 'Resolution', 'Start Location', 'Offset'] outputs: ['Mesh']
+Cylinder inputs: ['Vertices', 'Side Segments', 'Fill Segments', 'Radius', 'Depth']
+InstanceOnPoints inputs: ['Points', 'Selection', 'Instance', 'Pick Instance', 'Instance Index', 'Rotation', 'Scale']
+Realize inputs: ['Geometry', 'Selection', 'Realize All', 'Depth']
+Transform inputs: ['Geometry', 'Mode', 'Translation', 'Rotation', 'Scale', 'Transform']
+input identifiers: [('Geometry', 'Socket_1'), ('Geometry', 'Socket_0'), ('Count', 'Socket_2'), ('Spacing', 'Socket_3'), ('Bolt Radius', 'Socket_4'), ('Material', 'Socket_5')]
+read back Count: 8
+RESULT|GN_boltrow_count8_realized_evaluated|verts=104|faces=70|tris=172|ngons=16|dims=1.210x1.000x1.004|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|GN_boltrow_applied_mesh|verts=104|faces=70|tris=172|ngons=16|dims=1.210x1.000x1.004|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+material slots on applied: [None, 'M_Bolt']
+RESULT|GN_boltrow_NO_realize_evaluated|verts=8|faces=6|tris=12|ngons=0|dims=1.000x1.000x1.000|zmin=-0.5|nonmanifold=0|boundary=0|loose=0|flipped=0
+instances in evaluated geometry (ev.data is mesh only): MESH 8 -> instances are dropped by new_from_object unless realized
+Distribute inputs: ['Mesh', 'Selection', 'Distance Min', 'Density Max', 'Density', 'Density Factor', 'Seed'] outputs: ['Points', 'Normal', 'Rotation']
+RESULT|GN_scatter_density30_cube_6m2|verts=2168|faces=3606|tris=3612|ngons=0|dims=1.040x1.040x1.040|zmin=-0.52|nonmanifold=0|boundary=0|loose=0|flipped=0
+input item props: [('name', ''), ('value', 30.0), ('type', 'VALUE'), ('attribute_name', '')]
+RandomValue FLOAT inputs: [('Min', 'Min', True), ('Max', 'Max', True), ('ID', 'ID', True), ('Seed', 'Seed', True)] outputs: [('Value', 'Value', True)]
+Compare inputs: [('A', 'A', True), ('B', 'B', True)]
+Info: Saved as "t06.blend"
+DONE t06
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:49:19)
+
+Blender quit

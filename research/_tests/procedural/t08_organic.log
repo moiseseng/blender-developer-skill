@@ -1,0 +1,18 @@
+addon_utils.disable: bl_ext.lab_blender_org.mcp not enabled
+RESULT|organic_boulder_icosub4_noise|verts=642|faces=1280|tris=1280|ngons=0|dims=1.025x0.798x0.604|zmin=-0.3065|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|organic_boulder_smooth_vert_x2|verts=642|faces=1280|tris=1280|ngons=0|dims=1.000x0.780x0.594|zmin=-0.3022|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|organic_cube_sub6_noise_subsurf1|verts=1178|faces=1176|tris=2352|ngons=0|dims=1.051x1.055x1.044|zmin=-0.5253|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|organic_metaball_4_elements_res0.05|verts=764|faces=902|tris=1520|ngons=0|dims=0.958x0.637x0.637|zmin=-0.2273|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|organic_metaball_dissolve_limit_3deg|verts=762|faces=838|tris=1516|ngons=56|dims=0.958x0.637x0.637|zmin=-0.2273|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|skin_0_skeleton_edges_only|verts=8|faces=0|tris=0|ngons=0|dims=1.400x0.800x3.300|zmin=0.0|nonmanifold=7|boundary=0|loose=0|flipped=0
+skin layer exists: 1 entries: 8
+RESULT|skin_1_skin_modifier|verts=230|faces=229|tris=452|ngons=0|dims=1.454x0.862x3.313|zmin=0.0|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|skin_2_skin>subsurf2|verts=3644|faces=3640|tris=7280|ngons=0|dims=1.411x0.831x3.283|zmin=0.0188|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|skin_3_applied|verts=3644|faces=3640|tris=7280|ngons=0|dims=1.411x0.831x3.283|zmin=0.0188|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|lattice_0_can_base|verts=192|faces=170|tris=380|ngons=2|dims=0.600x0.600x1.000|zmin=0.0|nonmanifold=0|boundary=0|loose=0|flipped=0
+RESULT|lattice_1_taper_lean_evaluated|verts=192|faces=170|tris=380|ngons=2|dims=0.647x0.596x1.000|zmin=0.0|nonmanifold=0|boundary=0|loose=0|flipped=0
+Info: Saved as "t08.blend"
+DONE t08
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:49:19)
+
+Blender quit
