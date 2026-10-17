@@ -142,8 +142,37 @@ def _tri_count(objs):
 
 # --------------------------------------------------------------------------- GLB inspection
 
+def _quat_to_mat(q):
+    x, y, z, w = q
+    return [[1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+            [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
+            [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)]]
+
+
+def _node_local(n):
+    """4x4 row-major matrix of a glTF node (matrix is column-major in the file; TRS otherwise)."""
+    if "matrix" in n:
+        m = n["matrix"]
+        return [[m[c * 4 + r] for c in range(4)] for r in range(4)]
+    t = n.get("translation", [0, 0, 0]); r = n.get("rotation", [0, 0, 0, 1]); sc = n.get("scale", [1, 1, 1])
+    R = _quat_to_mat(r)
+    return [[R[0][0] * sc[0], R[0][1] * sc[1], R[0][2] * sc[2], t[0]],
+            [R[1][0] * sc[0], R[1][1] * sc[1], R[1][2] * sc[2], t[1]],
+            [R[2][0] * sc[0], R[2][1] * sc[1], R[2][2] * sc[2], t[2]],
+            [0, 0, 0, 1]]
+
+
+def _mat_mul(a, b):
+    return [[sum(a[i][k] * b[k][j] for k in range(4)) for j in range(4)] for i in range(4)]
+
+
+def _apply(m, p):
+    return [m[i][0] * p[0] + m[i][1] * p[1] + m[i][2] * p[2] + m[i][3] for i in range(3)]
+
+
 def inspect_glb(path):
-    """Parse a .glb header without external libraries: counts, bbox (converted back to Z-up), images."""
+    """Parse a .glb header without external libraries: counts, world bbox (node transforms applied,
+    converted back to Z-up), images. The bbox is what an engine sees after placing the file's nodes."""
     with open(path, "rb") as fh:
         magic, _version, _length = struct.unpack("<4sII", fh.read(12))
         if magic != b"glTF":
@@ -151,31 +180,53 @@ def inspect_glb(path):
         chunk_len, chunk_type = struct.unpack("<II", fh.read(8))
         doc = json.loads(fh.read(chunk_len).decode("utf-8"))
     accessors = doc.get("accessors", [])
+    nodes = doc.get("nodes", [])
+    meshes = doc.get("meshes", [])
+    # world matrices
+    world = {}
+    ident = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
+
+    def walk(i, parent):
+        world[i] = _mat_mul(parent, _node_local(nodes[i]))
+        for c in nodes[i].get("children", []):
+            walk(c, world[i])
+
+    scenes = doc.get("scenes", [])
+    roots = scenes[doc.get("scene", 0)].get("nodes", []) if scenes else [i for i in range(len(nodes)) if not any(i in n.get("children", []) for n in nodes)]
+    for r in roots:
+        walk(r, ident)
+
     verts = 0
     tris = 0
-    mins, maxs = [], []
-    for mesh in doc.get("meshes", []):
-        for prim in mesh.get("primitives", []):
+    lo = None
+    hi = None
+    for i, n in enumerate(nodes):
+        if "mesh" not in n:
+            continue
+        m = world.get(i, ident)
+        for prim in meshes[n["mesh"]].get("primitives", []):
             pos = prim.get("attributes", {}).get("POSITION")
-            if pos is not None:
-                acc = accessors[pos]
-                verts += acc["count"]
-                if "min" in acc:
-                    mins.append(acc["min"])
-                    maxs.append(acc["max"])
+            if pos is None:
+                continue
+            acc = accessors[pos]
+            verts += acc["count"]
             idx = prim.get("indices")
-            tris += (accessors[idx]["count"] // 3) if idx is not None else (accessors[pos]["count"] // 3 if pos is not None else 0)
+            tris += (accessors[idx]["count"] // 3) if idx is not None else acc["count"] // 3
+            if "min" in acc and "max" in acc:
+                mn, mx = acc["min"], acc["max"]
+                for corner in ((x, y, z) for x in (mn[0], mx[0]) for y in (mn[1], mx[1]) for z in (mn[2], mx[2])):
+                    wp = _apply(m, corner)
+                    lo = wp if lo is None else [min(lo[k], wp[k]) for k in range(3)]
+                    hi = wp if hi is None else [max(hi[k], wp[k]) for k in range(3)]
     bbox = None
-    if mins:
-        lo = [min(m[i] for m in mins) for i in range(3)]
-        hi = [max(m[i] for m in maxs) for i in range(3)]
-        # glTF is Y-up: (x, y, z)_gltf = (x, z, -y)_blender  ->  blender = (x, -z, y)
+    if lo:
+        # glTF is Y-up: blender = (x, -z, y)
         bbox = [[round(lo[0], 4), round(-hi[2], 4), round(lo[1], 4)], [round(hi[0], 4), round(-lo[2], 4), round(hi[1], 4)]]
     return dict(
         generator=doc.get("asset", {}).get("generator"),
-        nodes=len(doc.get("nodes", [])),
-        meshes=len(doc.get("meshes", [])),
-        primitives=sum(len(m.get("primitives", [])) for m in doc.get("meshes", [])),
+        nodes=len(nodes),
+        meshes=len(meshes),
+        primitives=sum(len(m.get("primitives", [])) for m in meshes),
         materials=[m.get("name") for m in doc.get("materials", [])],
         images=len(doc.get("images", [])),
         textures=len(doc.get("textures", [])),
