@@ -24,7 +24,7 @@ authority, explicit gates, a contract document before autonomy.
 As a plugin:
 
 ```bash
-claude plugin marketplace add moiseseng/blender-3d-team
+claude plugin marketplace add moiseseng/blender-developer-skill
 claude plugin install blender-3d-team@blender-3d-team
 ```
 
