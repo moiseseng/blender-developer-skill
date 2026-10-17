@@ -33,9 +33,17 @@ Add a `uv(p)` stage to `scripts/build.py` (or a separate `scripts/texture.py` th
 - Mirrored parts: stack islands and move duplicates +1 U for the bake, back after; never for lightmap
   or decal channels. Lightmap UV1 only when the target bakes lighting (recipe in the reference).
 
+Several delivery objects sharing one texture (body + lid, "1 material" in the brief): pack all their
+islands into one 0–1 space (multi-object Edit mode, or pack each object into its own region with
+`pack_islands(udim_source='CUSTOM_REGION')`), then audit with `--shared-uv` so coverage is judged on
+the sum, and bake with `--object SM_X_Body,SM_X_Lid` (one bake, one texture, both rewired).
+
 Run the audit and read the UV columns: coverage (report, warn under 60% for a unique bake),
 overlap (0 for a bake), density CV (under 0.35), out-of-bounds (only when tiling on purpose), flipped
-faces (mirrored on purpose or not). Scale the layout to the brief's texel density.
+faces (mirrored on purpose or not). Density and coverage pull against each other on small props: the
+rule is **fill the texture** (coverage 60–85% at the brief's texture size) and report the resulting
+density; the brief's px/m is a minimum, not a target. If the resulting density is more than 2x the
+brief's, drop one texture size and say so in `decisions.md`.
 
 ### 2. Materials
 
@@ -55,14 +63,16 @@ wear where the brief says, is the albedo in range (no black, no white), is rough
 
 ### 3. Bake (procedural → textures) when the target needs images
 
-`bash <plugin root>/scripts/blender_run.sh bake_textures.py <source.blend> -- --object SM_<Asset> --out assets/<Asset>/textures --size <px> --maps basecolor,roughness,metallic,normal,ao --samples 32 --margin <px> [--orm] --save`
-(one call per delivery object, or join the parts into the bake object when the brief allows one
-material). Then:
+`bash <plugin root>/scripts/blender_run.sh bake_textures.py <source.blend> -- --object SM_<Asset>[,SM_<Asset>_Lid] --out assets/<Asset>/textures --size <px> --maps basecolor,roughness,metallic,normal,ao --samples 32 --margin <px> [--orm] --save`
+(several objects in one call when they share the UV space; the script hides every other render-visible
+object during the bake so AO and rays see only the asset). Then:
 
 - Open every map with the Read tool. Black unused space is fine (it is outside the islands); black
   inside an island is not. Normal map mostly (128,128,255) with detail where bump nodes act.
-- `material_kit.texture_stats(path)` for each: albedo range, metallic bimodal, roughness mean and
-  variation, normal blue > 0.5, 8 vs 16 bit. Fix the material and re-bake if a flag fires.
+- `material_kit.texture_stats(path, uv_coverage=<from the audit>)` for each: albedo range (the
+  unused UV space of a bake is black by design; the coverage argument makes the check ignore it),
+  metallic bimodal, roughness mean and variation, normal blue > 0.5, 8 vs 16 bit. Fix the material and
+  re-bake if a flag fires.
 - `--orm` for Unreal; Roblox wants separate 8-bit roughness/metalness (already what the bake writes).
 - The bake rewires the object to `M_<Asset>_Baked` reading the images; the procedural material stays
   in the file for re-bakes. Record the maps, sizes and conventions in `decisions.md`.
@@ -85,4 +95,5 @@ sheet; apply measurable findings. Then `state.md` → `phase: 4-review`; commit 
 - Overlapping UVs on a baked asset "to save space". The bake fights itself.
 - Data textures left as sRGB after a reload. PNG does not remember; set Non-Color again.
 - 4K textures on a prop seen at 5 m. The tier and the camera decide, not ambition.
-- Baking with lights in the scene affecting base colour. Use `DIFFUSE` + `COLOR` only (the script does).
+- Baking base colour with the `DIFFUSE` pass on a material with metals: metal areas bake black. The
+  script routes Base Color through Emission; keep it that way.

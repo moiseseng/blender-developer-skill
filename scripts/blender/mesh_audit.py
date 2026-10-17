@@ -278,10 +278,35 @@ def _material_checks(obj, issues):
 # --------------------------------------------------------------------------- main audit
 
 
+def _parse_pivot(pivot):
+    """'bottom_center' | 'Name=rule,Other=rule,default=rule' | dict -> (default_rule, {name: rule})."""
+    if isinstance(pivot, dict):
+        d = dict(pivot)
+        return d.pop("default", "bottom_center"), d
+    if "=" not in (pivot or ""):
+        return pivot or "bottom_center", {}
+    rules = {}
+    default = "bottom_center"
+    for part in pivot.split(","):
+        k, _, v = part.partition("=")
+        if k.strip() == "default":
+            default = v.strip()
+        else:
+            rules[k.strip()] = v.strip()
+    return default, rules
+
+
 def audit(objects=None, collection=None, asset_class="small_prop", max_tris=None, max_texture=None,
           max_materials=None, pivot="bottom_center", name_regex=DEFAULT_NAME_REGEX, texture_size=None,
-          evaluated=True, uv_grid=128):
-    """Audit mesh objects. Returns a dict (JSON-serialisable)."""
+          evaluated=True, uv_grid=128, max_total_tris=None, asset_pivot=None, shared_uv=False):
+    """Audit mesh objects. Returns a dict (JSON-serialisable).
+
+    pivot: rule for every object, or per-object overrides 'SM_X_Lid=any,SM_X_Lock=any,default=bottom_center'.
+    asset_pivot: 'bottom_center' checks the combined bounding box of all audited objects against the world
+    origin (the asset's pivot), for assets made of several parts that share one origin.
+    max_total_tris: budget for the sum of all audited objects (the brief's per-asset number).
+    shared_uv: the objects share one texture/UV space; coverage is judged on the sum, not per object.
+    """
     budget = dict(CLASS_BUDGETS.get(asset_class, CLASS_BUDGETS["small_prop"]))
     if max_tris is not None:
         budget["max_tris"] = int(max_tris)
@@ -307,9 +332,13 @@ def audit(objects=None, collection=None, asset_class="small_prop", max_tris=None
     per_object = []
     total_tris = 0
     name_re = re.compile(name_regex) if name_regex else None
+    pivot_default, pivot_rules = _parse_pivot(pivot)
+    world_pts = []
 
     for obj in objs:
         rec = dict(name=obj.name)
+        pivot_rule = pivot_rules.get(obj.name, pivot_default)
+        rec["pivot_rule"] = pivot_rule
         mesh_src = obj.data
         if evaluated:
             mesh, eval_obj = _evaluated_mesh(obj, depsgraph)
@@ -338,11 +367,14 @@ def audit(objects=None, collection=None, asset_class="small_prop", max_tris=None
             cx, cy = (mn.x + mx.x) / 2, (mn.y + mx.y) / 2
             cz = (mn.z + mx.z) / 2
             rec["origin_offset_from_bottom_center"] = [round(cx, 4), round(cy, 4), round(mn.z, 4)]
-            if pivot == "bottom_center" and (abs(cx) > tol or abs(cy) > tol or abs(mn.z) > tol):
+            if pivot_rule == "bottom_center" and (abs(cx) > tol or abs(cy) > tol or abs(mn.z) > tol):
                 _issue(issues, "major", "PIVOT_NOT_BOTTOM_CENTER",
-                       f"Origin is off bottom-center by {rec['origin_offset_from_bottom_center']} m", obj.name)
-            if pivot == "center" and (abs(cx) > tol or abs(cy) > tol or abs(cz) > tol):
+                       f"Origin is off the bounding-box bottom-center by {rec['origin_offset_from_bottom_center']} m "
+                       f"(bbox-based: a one-sided protrusion shifts it; use pivot overrides or asset_pivot for parts)", obj.name)
+            if pivot_rule == "center" and (abs(cx) > tol or abs(cy) > tol or abs(cz) > tol):
                 _issue(issues, "major", "PIVOT_NOT_CENTER", "Origin is not at the bounding-box center", obj.name)
+            for v in mesh.vertices:
+                world_pts.append(obj.matrix_world @ v.co)
             if max(dims) < 0.01:
                 _issue(issues, "major", "SCALE_TINY", f"Largest dimension is {max(dims)} m: wrong unit scale?", obj.name)
             if max(dims) > 500:
@@ -419,7 +451,7 @@ def audit(objects=None, collection=None, asset_class="small_prop", max_tris=None
                 _issue(issues, "major", "UV_OUT_OF_BOUNDS", f"{uvrep['uv_faces_out_of_bounds']} faces outside 0-1 (ok only for tiling materials)", obj.name)
             if uvrep["uv_overlap_fraction"] > 0.02:
                 _issue(issues, "major", "UV_OVERLAP", f"{round(uvrep['uv_overlap_fraction']*100,1)}% of covered UV space overlaps (ok only if mirrored on purpose)", obj.name)
-            if uvrep["uv_coverage"] < 0.60:
+            if uvrep["uv_coverage"] < 0.60 and not shared_uv:
                 _issue(issues, "minor", "UV_LOW_COVERAGE", f"UV coverage {round(uvrep['uv_coverage']*100)}% (< 60%); pack tighter or shrink the texture", obj.name)
             if 0 < uvrep["uv_flipped_faces"] < len(mesh.polygons):
                 _issue(issues, "minor", "UV_FLIPPED", f"{uvrep['uv_flipped_faces']} faces with mirrored UVs (fine if mirrored on purpose; not for lightmaps or decals)", obj.name)
@@ -450,6 +482,24 @@ def audit(objects=None, collection=None, asset_class="small_prop", max_tris=None
     for n in missing:
         _issue(issues, "blocker", "OBJECT_MISSING", f"Object {n} not found", n)
 
+    # Asset-level checks: combined pivot, total triangle budget, shared UV coverage.
+    asset_bbox = None
+    if world_pts:
+        lo = [min(p[i] for p in world_pts) for i in range(3)]
+        hi = [max(p[i] for p in world_pts) for i in range(3)]
+        asset_bbox = [[round(v, 4) for v in lo], [round(v, 4) for v in hi]]
+        if asset_pivot == "bottom_center":
+            tol = max(0.005 * max(hi[i] - lo[i] for i in range(3)), 0.001)
+            cx, cy = (lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2
+            if abs(cx) > tol or abs(cy) > tol or abs(lo[2]) > tol:
+                _issue(issues, "major", "ASSET_PIVOT",
+                       f"Asset bounding box bottom-center is at {[round(cx, 4), round(cy, 4), round(lo[2], 4)]}, not the world origin")
+    if max_total_tris is not None and total_tris > int(max_total_tris):
+        _issue(issues, "blocker", "BUDGET_TOTAL_TRIS", f"{total_tris} tris in total > asset budget {max_total_tris}")
+    uv_cov_sum = round(sum(o.get("uv", {}).get("uv_coverage", 0.0) for o in per_object), 3)
+    if shared_uv and per_object and uv_cov_sum < 0.60:
+        _issue(issues, "minor", "UV_LOW_COVERAGE", f"Combined UV coverage {round(uv_cov_sum*100)}% (< 60%) across the shared texture")
+
     counts = {s: sum(1 for i in issues if i["severity"] == s) for s in ("blocker", "major", "minor")}
     verdict = "blocked" if counts["blocker"] else ("needs_fixes" if counts["major"] else "pass")
     return dict(
@@ -459,6 +509,9 @@ def audit(objects=None, collection=None, asset_class="small_prop", max_tris=None
         pivot_rule=pivot,
         objects_audited=[o.name for o in objs],
         total_tris=total_tris,
+        max_total_tris=max_total_tris,
+        asset_bbox_world=asset_bbox,
+        uv_coverage_combined=uv_cov_sum if shared_uv else None,
         verdict=verdict,
         issue_counts=counts,
         issues=issues,
@@ -469,8 +522,10 @@ def audit(objects=None, collection=None, asset_class="small_prop", max_tris=None
 def to_markdown(report):
     lines = [f"# Mesh audit - verdict: **{report['verdict']}**",
              "",
-             f"Blender {report['blender']} - class `{report['asset_class']}` - budget {report['budget']['max_tris']} tris / "
-             f"{report['budget']['max_texture']} px / {report['budget']['max_materials']} materials - pivot rule `{report['pivot_rule']}`",
+             f"Blender {report['blender']} - class `{report['asset_class']}` - budget {report['budget']['max_tris']} tris per object"
+             + (f", {report['max_total_tris']} total" if report.get('max_total_tris') else "")
+             + f" / {report['budget']['max_texture']} px / {report['budget']['max_materials']} materials - pivot rule `{report['pivot_rule']}`"
+             + f" - total tris {report['total_tris']}",
              "",
              "| Object | Tris | Dims (m) | Quads % | UV cov | Texel px/m | Mats | Issues |",
              "|---|---|---|---|---|---|---|---|"]
@@ -502,7 +557,10 @@ def _cli():
     p.add_argument("--max-tris", type=int)
     p.add_argument("--max-texture", type=int)
     p.add_argument("--max-materials", type=int)
-    p.add_argument("--pivot", default="bottom_center", choices=["bottom_center", "center", "any"])
+    p.add_argument("--pivot", default="bottom_center", help="bottom_center|center|any, or per-object 'SM_X_Lid=any,default=bottom_center'")
+    p.add_argument("--asset-pivot", choices=["bottom_center", "none"], default=None, help="check the combined bbox of all objects against the world origin")
+    p.add_argument("--max-total-tris", type=int, help="budget for the sum of all audited objects")
+    p.add_argument("--shared-uv", action="store_true", help="objects share one texture: judge UV coverage on the sum")
     p.add_argument("--name-regex", default=DEFAULT_NAME_REGEX)
     p.add_argument("--texture-size", type=int)
     p.add_argument("--source", action="store_true", help="audit source mesh instead of evaluated (modifiers applied)")
@@ -513,7 +571,9 @@ def _cli():
     rep = audit(objects=a.objects.split(",") if a.objects else None, collection=a.collection,
                 asset_class=a.asset_class, max_tris=a.max_tris, max_texture=a.max_texture,
                 max_materials=a.max_materials, pivot=a.pivot, name_regex=a.name_regex,
-                texture_size=a.texture_size, evaluated=not a.source, uv_grid=a.uv_grid)
+                texture_size=a.texture_size, evaluated=not a.source, uv_grid=a.uv_grid,
+                max_total_tris=a.max_total_tris, asset_pivot=(a.asset_pivot if a.asset_pivot != "none" else None),
+                shared_uv=a.shared_uv)
     if a.json:
         with open(a.json, "w") as fh:
             json.dump(rep, fh, indent=2)

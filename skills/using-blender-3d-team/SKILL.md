@@ -133,7 +133,11 @@ Each role also exists as a subagent brief in `agents/`. Use them for independent
 each skill names (the art director reviews blockout renders and final renders against the brief; the
 tech artist reviews the audit and the export; the texture artist reviews UVs and materials). Give the
 subagent the files, not your conclusion, so the review isn't anchored. Dispatch them with the Agent tool,
-`subagent_type: blender-3d-team:<role>` (they are agents, not skills; the Skill tool won't find them).
+`subagent_type: blender-3d-team:<role>` (they are agents, not skills; the Skill tool won't find them). If
+that type does not exist in the session (plugin agents not registered), spawn a `general-purpose` agent
+whose prompt is the full text of `agents/<role>.md` followed by the file paths to review. Reviews cost
+minutes: give the reviewer the brief, the sheet and the modeler's numbers (`docs/qa/*-notes.md`) so it
+judges instead of re-measuring.
 
 ## Red flags
 

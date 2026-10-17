@@ -21,7 +21,7 @@ back to `review-qa` and say so.
 ### 1. Export per preset, verify each
 
 `bash <plugin root>/scripts/blender_run.sh export_asset.py <source.blend> -- --objects <delivery objects, LODs, UCX_> --asset <Asset> --out assets/<Asset>/export --presets <from the brief> [--triangulate] [--draco]`.
-Read the JSON: `bbox_matches_scene` for GLB, `dims_match_scene` and the re-import rotation for FBX
+Read the JSON (`export/export.json`, also printed): `bbox_matches_scene` for GLB, `dims_match_scene` and the re-import rotation for FBX
 (note the documented exception for `bake_space_transform`), byte sizes, errors. Fix and re-export
 rather than ship a file with an error. For Unreal, one FBX per prop with its collision objects.
 For Roblox, check the 20 000-tri cap and one material per mesh before exporting.

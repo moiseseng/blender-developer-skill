@@ -42,7 +42,11 @@ in metres, a `build(p)` that clears its own objects and rebuilds, `--save` handl
 Run it (`blender_run.sh assets/<Asset>/scripts/build.py assets/<Asset>/source/<Asset>.blend -- --save
 assets/<Asset>/source/<Asset>.blend`). Then audit with class `placeholder` so only scale, pivot and
 transforms are judged:
-`blender_run.sh mesh_audit.py <source.blend> -- --collection <Asset>_Blockout --asset-class placeholder --name-regex '^BLK_.*' --md assets/<Asset>/docs/qa/blockout-audit.md`.
+`blender_run.sh mesh_audit.py <source.blend> -- --collection <Asset>_Blockout --asset-class placeholder --name-regex '^BLK_.*' --pivot "any,BLK_<Asset>_Body=bottom_center" --asset-pivot bottom_center --max-total-tris <brief budget> --md assets/<Asset>/docs/qa/blockout-audit.md`.
+The main body carries the bottom-centre rule; sub-parts that share the asset origin (bands, lock) and
+parts with their own pivot (the lid on its hinge) are `any`; `--asset-pivot` checks the whole proxy
+sits on the origin. One material per placeholder object (object colour is enough), never the detail
+materials.
 
 ### 3. Render and look
 

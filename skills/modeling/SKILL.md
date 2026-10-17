@@ -50,11 +50,17 @@ keeping the parametric version; or leave the stack and let the exporter apply it
 
 ### 3. Audit after every stage
 
-`bash <plugin root>/scripts/blender_run.sh mesh_audit.py <source.blend> -- --collection <Asset>_Model --asset-class <class> --max-tris <N> --max-texture <N> --pivot <rule> --md docs/qa/model-audit.md`
-with the brief's numbers. Blockers and majors are fixed in the script before any render
-(`references/topology.md` has the fix per code). Watch the triangle count against the budget as you
-add detail; if tertiary detail would break it, it becomes texture detail instead (note it for
-uv-texturing).
+`bash <plugin root>/scripts/blender_run.sh mesh_audit.py <source.blend> -- --collection <Asset>_Model --asset-class <class> --max-tris <N per object> --max-total-tris <N for the asset> --max-texture <N> --max-materials <surface types> --pivot "<rule>,SM_<Asset>_Lid=any" --asset-pivot bottom_center --json docs/qa/audit.json --md docs/qa/model-audit.md`
+with the brief's numbers. The brief's triangle budget is per asset (`--max-total-tris`); the per-object
+number is a sanity cap. The pivot rule applies per object: parts that pivot elsewhere (a lid on its
+hinge, a wheel on its axle) or sub-parts that share the asset origin get `Name=any` overrides, and
+`--asset-pivot` checks the whole asset's bounding box against the world origin instead. The pivot
+check is bounding-box based, so a one-sided protrusion (a lock plate) shifts it: when that happens, say
+so in `decisions.md` rather than moving the origin off the designed point. `--max-materials` is the
+number of *surface types* until the bake; the brief's "1 material" applies after `uv-texturing` bakes.
+Blockers and majors are fixed in the script before any render (`references/topology.md` has the fix
+per code). Watch the total against the budget as you add detail; if tertiary detail would break it,
+it becomes texture detail instead (note it for uv-texturing).
 
 ### 4. Render and look, every iteration
 

@@ -321,7 +321,10 @@ def export(objects=None, collection=None, asset_name=None, out_dir=".", presets=
             if n.lower().endswith((".png", ".jpg", ".jpeg", ".webp", ".exr", ".tga")):
                 shipped.append(os.path.relpath(os.path.join(root, n), out_dir))
 
-    return dict(blender=bpy.app.version_string, asset=asset_name, source=pre, files=files, textures=sorted(shipped))
+    report = dict(blender=bpy.app.version_string, asset=asset_name, source=pre, files=files, textures=sorted(shipped))
+    with open(os.path.join(out_dir, "export.json"), "w") as fh:   # make_manifest.py and the README read this
+        json.dump(report, fh, indent=2)
+    return report
 
 
 def _cli():

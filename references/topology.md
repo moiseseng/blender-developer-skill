@@ -80,6 +80,10 @@ depend on it.
 
 - Model at real-world size, metres, scene unit scale 1.0. Door 2.0–2.1 m, chair seat 0.45 m, adult
   1.75 m, crate 0.6–1.2 m.
+- The audit's pivot check is bounding-box based (origin at the bbox bottom-centre within 0.5% of the
+  largest dimension). A one-sided protrusion shifts the bbox centre off the designed pivot; keep the
+  designed point and note it, and use per-object `Name=any` overrides plus `--asset-pivot` for assets made
+  of several parts sharing one origin.
 - Pivot by type: props and furniture at bottom-centre (drops onto the floor at z=0); characters between the
   feet; wall and floor modules at a bottom corner or bottom-centre on the grid the brief sets (1/2/4 m);
   doors on the hinge axis; wheels, turrets, levers on their rotation axis; attachments at the grip or

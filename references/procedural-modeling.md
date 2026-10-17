@@ -56,7 +56,12 @@ MCP in live mode). A review note becomes a `PARAMS` change or a new operation; n
   the original face stays and the mesh is non-manifold. Then `translate` the returned verts.
 - `bevel(geom=edges, offset, segments=N, profile=0.5, affect='EDGES', clamp_overlap=True)`: **always
   pass `affect='EDGES'` and `segments`**; the defaults bevel vertices with one segment.
-- `bisect_plane(..., clear_outer=True)` + `contextual_create(geom=cut_edges)` cuts and caps.
+- `bisect_plane(..., clear_outer=True)` + `contextual_create(geom=cut_edges)` cuts and caps with one
+  n-gon; `spin` and `create_cone` caps are n-gons too. The audit flags n-gons for every class but
+  placeholder/cinematic, so cap flat areas with a grid (`inset_region` + `subdivide_edges` with
+  `use_grid_fill`) or `triangulate(faces=[cap])` before the audit; for domes prefer a quad-capped
+  profile (`create_uvsphere` half, or a lathe whose profile ends slightly off-axis then `remove_doubles`)
+  over fan caps that show as spokes in the wireframe.
 - `spin(geom, cent, axis, angle=math.tau, steps=32, use_merge=True)` for lathes (bottles, wheels,
   vases); then `remove_doubles(dist=1e-5)` and **`recalc_face_normals`** (spin produces inward faces).
 - `bridge_loops(edges)` between two rings; `symmetrize(direction='X')` keeps +X (delete the on-plane
@@ -139,6 +144,12 @@ boxes, EXACT boolean. Keep rest areas: not every face gets a panel.
 
 Honest limit: these give blobs, rocks, trunks and blockouts. Faces, hands, folds and hair need a sculpt;
 the brief says so before modeling starts (`references/topology.md`).
+
+## Material slots
+
+`mesh.materials.clear()` resets every face's `material_index` to 0. Record the per-face indices (or the
+face sets per surface) before clearing and reassign them after appending the slots, or assign slots
+once and never clear. The baked material replaces all slots on purpose (one texture, one slot).
 
 ## Hygiene inside the script (order that worked)
 

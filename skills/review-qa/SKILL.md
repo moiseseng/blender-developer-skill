@@ -20,8 +20,9 @@ Inputs: `docs/brief.md`, `source/<Asset>.blend`, `textures/`, `renders/`, `docs/
 
 ### 1. Technical audit (the gate)
 
-`bash <plugin root>/scripts/blender_run.sh mesh_audit.py <source.blend> -- --collection <Asset>_Model --asset-class <class> --max-tris <N> --max-texture <N> --max-materials <N> --pivot <rule> --texture-size <px> --json docs/qa/audit.json --md docs/qa/audit.md`
-with the brief's budgets, plus the same for LOD and collision objects with their classes. Read the
+`bash <plugin root>/scripts/blender_run.sh mesh_audit.py <source.blend> -- --collection <Asset>_Model --asset-class <class> --max-tris <N per object> --max-total-tris <asset budget> --max-texture <N> --max-materials <N> --pivot "<rule>,<Part>=any" --asset-pivot bottom_center [--shared-uv] --texture-size <px> --json docs/qa/audit.json --md docs/qa/audit.md`
+with the brief's budgets (`docs/qa/audit.json` feeds the manifest), plus the same for LOD and
+collision objects with their classes. Read the
 Markdown. Then `material_kit.texture_stats` on every texture (through a short `-b` script or the
 MCP) and `get_blendfile_summary_missing_files` or `bpy.ops.file.report_missing_files` for missing
 images.

@@ -34,10 +34,12 @@ metallic, AO, height, masks, ORM. PNG does not store it: set it again after load
 
 - Target: an Image Texture node that is **selected and active** in every material of the baked object
   (5.0 rule; a material without one bakes nothing).
-- Base colour = `type='DIFFUSE', pass_filter={'COLOR'}` (lighting-independent). Roughness =
-  `ROUGHNESS`. Normal = `NORMAL`, tangent, +X +Y +Z (captures Bump and Normal Map nodes in the shader).
-  AO = `AO`. Emissive = `EMIT`. **Metallic, alpha, height have no pass**: route the socket's source
-  into Emission and bake `EMIT`.
+- Base colour: **not** `DIFFUSE` + `COLOR` on a PBR material: a Principled surface with Metallic 1 has
+  no diffuse colour and bakes black. Route the Base Color socket's source into Emission and bake `EMIT`
+  (what `bake_textures.py` does); `DIFFUSE` + `COLOR` is fine only for all-dielectric materials.
+  Roughness = `ROUGHNESS`. Normal = `NORMAL`, tangent, +X +Y +Z (captures Bump and Normal Map nodes in
+  the shader). AO = `AO`. Emissive = `EMIT`. **Metallic, alpha, height have no pass**: the same Emission
+  route.
 - High to low: select the high objects, make the low active, `use_selected_to_active=True`, either a
   cage (`use_cage`, `cage_extrusion` ≈ 1–2% of the object size) or `max_ray_distance`, not both.
 - Samples: 8–16 for colour, roughness, normal, emit; 64–256 for AO. Margin ≥ 2 px at 256, 4 at 512,

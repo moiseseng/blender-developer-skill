@@ -300,8 +300,9 @@ def gltf_occlusion_output(mat, ao_image):
 
 # --------------------------------------------------------------------------- QA
 
-def texture_stats(path, kind=None):
-    """Numbers the tech artist checks. kind: basecolor | roughness | metallic | normal | ao (guessed from name)."""
+def texture_stats(path, kind=None, uv_coverage=None):
+    """Numbers the tech artist checks. kind: basecolor | roughness | metallic | normal | ao (guessed from name).
+    uv_coverage (0..1, from mesh_audit) lets the base-colour check ignore the unused UV space of a bake."""
     import numpy as np
     name = os.path.basename(path).lower()
     kind = kind or next((k for k in ("basecolor", "roughness", "metallic", "normal", "ao", "orm", "emissive") if k in name.replace("_", "")), "unknown")
@@ -325,8 +326,11 @@ def texture_stats(path, kind=None):
         dark = float((lum < 30).mean())
         bright = float((lum > 240).mean())
         rep.update(pct_below_30=round(dark * 100, 2), pct_above_240=round(bright * 100, 2))
-        if dark > 0.05:
-            flags.append("more than 5% of pixels darker than sRGB 30 (unused UV space or crushed albedo)")
+        allowed = (1.0 - uv_coverage) + 0.05 if uv_coverage is not None else None
+        if allowed is not None and dark > allowed:
+            flags.append(f"{round(dark*100,1)}% of pixels darker than sRGB 30 but only {round((1-uv_coverage)*100)}% of the texture is unused UV space: crushed albedo inside islands")
+        elif allowed is None and dark > 0.05:
+            rep["note"] = "pixels darker than sRGB 30 are expected in unused UV space of a bake; pass uv_coverage to judge"
         if bright > 0.02:
             flags.append("pixels brighter than sRGB 240")
     if kind == "metallic":

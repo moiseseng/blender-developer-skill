@@ -72,6 +72,7 @@ Origin to bottom-centre: translate vertices by `-(cx, cy, zmin)` and set `ob.loc
 
 ## Materials and images
 
+- `mesh.materials.clear()` resets every face's `material_index` to 0; reassign indices after re-appending slots.
 - Colour sockets are scene-linear. A hex or sRGB colour must be converted before
   `default_value`: `linear = ((c + 0.055) / 1.055) ** 2.4 if c > 0.04045 else c / 12.92`.
 - Data images: `bpy.data.images.new(name, w, h, float_buffer=True, is_data=True)` for normal and

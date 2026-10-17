@@ -70,17 +70,22 @@ def _look_at(obj, target):
     obj.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
 
 
-def _place_camera(cam, center, radius, direction, ortho, focal_mm=50.0, fit=1.15):
+def _place_camera(cam, center, radius, direction, ortho, focal_mm=50.0, fit=1.15, aspect=16 / 9):
+    """Frame a sphere of `radius` so it fits in BOTH frame dimensions (the FOV reported by Blender is the
+    horizontal one for landscape renders; a tall object would be cropped otherwise)."""
     cam.data.lens = focal_mm
     cam.data.clip_end = max(1000.0, radius * 50)
+    cam.data.sensor_fit = "AUTO"
     if ortho:
         cam.data.type = "ORTHO"
-        cam.data.ortho_scale = radius * 2 * fit
+        cam.data.ortho_scale = radius * 2 * fit / min(1.0, aspect if aspect < 1 else 1.0 / aspect) if aspect != 1 else radius * 2 * fit
         dist = radius * 4
     else:
         cam.data.type = "PERSP"
-        fov = cam.data.angle
-        dist = (radius * fit) / math.tan(fov / 2)
+        fov = cam.data.angle                       # along the larger frame dimension
+        half = math.tan(fov / 2)
+        half_small = half * (min(aspect, 1 / aspect))  # tangent of the half-FOV along the smaller dimension
+        dist = (radius * fit) / min(half, half_small)
     cam.location = center + direction.normalized() * dist
     _look_at(cam, center)
     if ortho and abs(direction.z) > 0.99:  # top view: keep +Y up on screen
@@ -212,7 +217,7 @@ def contact_sheet(paths, out_path, cols=3, label_height=0):
 def review(objects=None, collection=None, out_dir="renders", modes=("beauty", "clay", "wireframe"),
            views=("three_quarter", "front", "right", "top"), turntable_frames=0, resolution=(1280, 720),
            engine="BLENDER_EEVEE", samples=32, hdri=None, view_transform="Standard", focal_mm=50.0,
-           ground=True, sheet=True, transparent=False):
+           ground=True, sheet=True, transparent=False, fit=1.15):
     objs = _targets(objects, collection)
     if not objs:
         return {"error": "no mesh objects to render"}
@@ -251,8 +256,10 @@ def review(objects=None, collection=None, out_dir="renders", modes=("beauty", "c
 
     outputs = {}
 
+    aspect = resolution[0] / float(resolution[1])
+
     def _render(mode, view_name, direction, ortho, path):
-        _place_camera(cam, center, radius, direction, ortho, focal_mm=focal_mm)
+        _place_camera(cam, center, radius, direction, ortho, focal_mm=focal_mm, fit=fit, aspect=aspect)
         scene.render.filepath = path
         bpy.ops.render.render(write_still=True, scene=scene.name)
         outputs.setdefault(mode, []).append(path)
@@ -356,12 +363,13 @@ def _cli():
     p.add_argument("--view-transform", default="Standard")
     p.add_argument("--no-ground", action="store_true")
     p.add_argument("--transparent", action="store_true")
+    p.add_argument("--fit", type=float, default=1.15, help="margin factor around the asset's bounding sphere (1.0 = touching)")
     a = p.parse_args(argv)
     w, h = (int(x) for x in a.res.lower().split("x"))
     rep = review(objects=a.objects.split(",") if a.objects else None, collection=a.collection, out_dir=a.out,
                  modes=tuple(a.modes.split(",")), views=tuple(a.views.split(",")), turntable_frames=a.turntable,
                  resolution=(w, h), engine=a.engine, samples=a.samples, hdri=a.hdri, view_transform=a.view_transform,
-                 ground=not a.no_ground, transparent=a.transparent)
+                 ground=not a.no_ground, transparent=a.transparent, fit=a.fit)
     print(json.dumps(rep, indent=2))
     print("REVIEW_JSON=" + json.dumps(rep))
 
